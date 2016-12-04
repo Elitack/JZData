@@ -9,7 +9,7 @@ import csv
 class QuotesSpider(scrapy.Spider):
     name = "quotes"
     start_urls = [
-        "file://127.0.0.1/home/jack/Desktop/file2/Contents0.html"
+        "file://127.0.0.1/home/jack/Desktop/file1/Contents0.html"
     ]
 
     def parse(self, response):
@@ -39,9 +39,15 @@ class QuotesSpider(scrapy.Spider):
         endNum = endA[0].find('.')
         end = int(endA[0][17:endNum])
         for i in range(start, end+1):
-            yield scrapy.Request("file://127.0.0.1/home/jack/Desktop/file2/Contents" + str(i) + ".html", callback = self.parseCallLog)
+            yield scrapy.Request("file://127.0.0.1/home/jack/Desktop/file1/Contents" + str(i) + ".html", callback = self.parseCallLog)
 
-
+    def isMD5(self, tdlist):
+        length = len(tdlist)
+        length = length - 4
+        if length % 13:
+            return 1
+        else:
+            return 0
 
     def parseCallLog(self, response):
 
@@ -52,14 +58,16 @@ class QuotesSpider(scrapy.Spider):
             if lixpath != u'\u59d3\u540d':#中文:姓名
                 continue
             tdlist = li.xpath(".//td/text()").extract()
-
+            flagMD5 = self.isMD5(tdlist)
             while index < len(tdlist):
                 f = file("real.csv", "a+")
-                print "%d \n" %len(tdlist)
-                print "%d \n" %index
                 f.write(tdlist[index] + ',' + tdlist[index+1] + ',' + tdlist[index+2] + ',')
                 f.write(tdlist[index+4] + ',' + tdlist[index+6] + ',' + tdlist[index+8] + ',')
-                f.write(tdlist[index+10] + ',' + tdlist[index+12] + '\n')
+                f.write(tdlist[index+10] + ',' + tdlist[index+12])
+                if flagMD5:
+                    f.write(',' + tdlist[index+14] + '\n')
+                else:
+                    f.write(',' + ' ' +'\n')
                 f.close()
-                index = index + 13
+                index = index + 13 + 2*flagMD5
             index = 4
