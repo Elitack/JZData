@@ -64,7 +64,8 @@ class QuotesSpider(scrapy.Spider):
                 f = file("real.csv", "a+")
                 writeIndex = [0] + range(1, rangeCol2 + 5)
                 for i in writeIndex:
-                    f.write(str(tdlist[index+i]) + ',')
+                    tmp = tdlist[index+i].replace('\n', '')
+                    f.write(tmp + ',')
                 f.write('\n')
                 f.close()
                 index = index + rangeCol2 + 5
