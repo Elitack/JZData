@@ -41,13 +41,6 @@ class QuotesSpider(scrapy.Spider):
         for i in range(start, end+1):
             yield scrapy.Request("file://127.0.0.1/home/jack/Desktop/file1/Contents" + str(i) + ".html", callback = self.parseCallLog)
 
-    def isMD5(self, tdlist):
-        length = len(tdlist)
-        length = length - 4
-        if length % 13:
-            return 1
-        else:
-            return 0
 
     def parseCallLog(self, response):
 
@@ -65,7 +58,7 @@ class QuotesSpider(scrapy.Spider):
                 writeIndex = [0] + range(1, rangeCol2 + 5)
                 for i in writeIndex:
                     tmp = tdlist[index+i].replace('\n', '')
-                    f.write(tmp + ',')
+                    f.write(tmpq + ',')
                 f.write('\n')
                 f.close()
                 index = index + rangeCol2 + 5
