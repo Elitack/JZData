@@ -1,20 +1,20 @@
  #coding=utf-8
 
+import scrapy
+from scrapy.crawler import CrawlerProcess
 import sys
 import scrapy
 from scrapy.selector import Selector
 from scrapy.http import HtmlResponse
 import csv
 
-class QuotesSpider(scrapy.Spider):
+class MySpider(scrapy.Spider):
     name = "quotes"
     start_urls = [
         "file://127.0.0.1/home/jack/Desktop/file1/Contents0.html"
     ]
 
     def parse(self, response):
-        reload(sys)
-        sys.setdefaultencoding( "utf-8" )
 #CallLog
         indexCall = 0
         indexMes = 0
@@ -118,7 +118,7 @@ class QuotesSpider(scrapy.Spider):
             tdlist = li.xpath(".//td/text()").extract()
             flagMD5 = self.isMD5(tdlist)
             while index < len(tdlist):
-                f = file("real.csv", "a+")
+                f = file("callLog.csv", "a+")
                 f.write(tdlist[index] + ',' + tdlist[index+1] + ',' + tdlist[index+2] + ',')
                 f.write(tdlist[index+4] + ',' + tdlist[index+6] + ',' + tdlist[index+8] + ',')
                 f.write(tdlist[index+10] + ',' + tdlist[index+12])
@@ -142,10 +142,13 @@ class QuotesSpider(scrapy.Spider):
             col2 = li.xpath("./tr/td/table").extract()[0]
             rangeCol2 = len(Selector(text=col2).xpath(".//td").extract())-1
             while index < len(tdlist):
-                f = file("real.csv", "a+")
-                writeIndex = [0] + range(1, rangeCol2 + 5)
-                for i in writeIndex:
-                    tmp = tdlist[index+i].replace('\n', '')
+                f = file("message.csv", "a+")
+                f.write(tdlist[index] + ',')
+                for i in range(1,rangeCol2):
+                    tmp = tdlist[index+i].replace('\n', ' ')
+                    f.write(tmp + ' ')
+                for i in range(rangeCol2, 5+rangeCol2):
+                    tmp = tdlist[index+i].replace('\n', ' ')
                     f.write(tmp + ',')
                 f.write('\n')
                 f.close()
@@ -164,10 +167,23 @@ class QuotesSpider(scrapy.Spider):
             tdlist = li.xpath(".//td/text()").extract()
 
             while index < len(tdlist):
-                f = file("real.csv", "a+")
+                f = file("adressBook.csv", "a+")
                 f.write(tdlist[index] + ',' + tdlist[index+1] + ',' + tdlist[index+2] + ',')
                 f.write(tdlist[index+3] + ',' + tdlist[index+4] + ',' + tdlist[index+5] + '\n')
 
                 f.close()
                 index = index + 6
             index = 6
+
+
+process = CrawlerProcess({
+    'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
+})
+
+
+reload(sys)
+sys.setdefaultencoding( "utf-8" )
+
+print "abcde\n\n\n\n\n\n\n\n\n\n\n\n\n"
+process.crawl(MySpider)
+process.start() # the script will block here until the crawling is finished
