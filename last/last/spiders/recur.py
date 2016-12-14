@@ -12,7 +12,6 @@ from scrapy.utils.project import get_project_settings
 
 class MySpider(scrapy.Spider):
     name = "quotes"
-    start_urls = ["http://127.0.0.1:80/file2/Contents0.html"]
 
     def start_requests(self):
         pages = []
@@ -26,7 +25,7 @@ class MySpider(scrapy.Spider):
             pages.append(page)
         return pages
 
-        
+
     def parse(self, response):
         reload(sys)
         sys.setdefaultencoding( "utf-8" )
