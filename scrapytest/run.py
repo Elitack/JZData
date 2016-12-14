@@ -7,14 +7,18 @@ import scrapy
 from scrapy.selector import Selector
 from scrapy.http import HtmlResponse
 import csv
+import os
+from scrapy.utils.project import get_project_settings
 
 class MySpider(scrapy.Spider):
     name = "quotes"
-    start_urls = [
-        "file://127.0.0.1/home/jack/Desktop/file1/Contents0.html"
-    ]
+    start_urls = ["http://127.0.0.1:80/file2/Contents0.html"]
+
+
+
 
     def parse(self, response):
+
 #CallLog
         indexCall = 0
         indexMes = 0
@@ -33,14 +37,22 @@ class MySpider(scrapy.Spider):
                 continue
             break
         indexMes = indexMes - 3
-        startA = callLog[indexCall].xpath("./span/a").extract()
-        endA = callLog[indexMes].xpath("./span/a").extract()
-        endNum = startA[0].find('.')
-        start = int(startA[0][17:endNum])
-        endNum = endA[0].find('.')
-        end = int(endA[0][17:endNum])
+        if indexMes != indexCall-3:
+            startA = callLog[indexCall].xpath("./span/a").extract()
+            endA = callLog[indexMes].xpath("./span/a").extract()
+            if startA[0][9] != '#':
+                endNum = startA[0].find('.')
+                start = int(startA[0][17:endNum])
+            else:
+                start = 0
+            if endA[0][9] != '#':
+                endNum = endA[0].find('.')
+                end = int(endA[0][17:endNum])
+            else:
+                end = 0
         for i in range(start, end+1):
-            yield scrapy.Request("file://127.0.0.1/home/jack/Desktop/file1/Contents" + str(i) + ".html", callback = self.parseCallLog)
+            theEndNum = response.url.find("Contents") + 8
+            yield scrapy.Request(response.url[0:theEndNum] + str(i) + ".html", callback = self.parseCallLog)
 
 #Adressbook
         indexCall = 0
@@ -60,14 +72,22 @@ class MySpider(scrapy.Spider):
                 continue
             break
         indexMes = indexMes - 3
-        startA = adressList[indexCall].xpath("./span/a").extract()
-        endA = adressList[indexMes].xpath("./span/a").extract()
-        endNum = startA[0].find('.')
-        start = int(startA[0][17:endNum])
-        endNum = endA[0].find('.')
-        end = int(endA[0][17:endNum])
-        for i in range(start, end+1):
-            yield scrapy.Request("file://127.0.0.1/home/jack/Desktop/file1/Contents" + str(i) + ".html", callback = self.parseAdressBook)
+        if indexMes != indexCall-3:
+            startA = adressList[indexCall].xpath("./span/a").extract()
+            endA = adressList[indexMes].xpath("./span/a").extract()
+            if startA[0][9] != '#':
+                endNum = startA[0].find('.')
+                start = int(startA[0][17:endNum])
+            else:
+                start = 0
+            if endA[0][9] != '#':
+                endNum = endA[0].find('.')
+                end = int(endA[0][17:endNum])
+            else:
+                end = 0
+            for i in range(start, end+1):
+                theEndNum = response.url.find("Contents") + 8
+                yield scrapy.Request(response.url[0:theEndNum] + str(i) + ".html", callback = self.parseAdressBook)
 
 
 #Message
@@ -88,14 +108,22 @@ class MySpider(scrapy.Spider):
                 continue
             break
         indexMes = indexMes - 3
-        startA = callLog[indexCall].xpath("./span/a").extract()
-        endA = callLog[indexMes].xpath("./span/a").extract()
-        endNum = startA[0].find('.')
-        start = int(startA[0][17:endNum])
-        endNum = endA[0].find('.')
-        end = int(endA[0][17:endNum])
-        for i in range(start, end+1):
-            yield scrapy.Request("file://127.0.0.1/home/jack/Desktop/file1/Contents" + str(i) + ".html", callback = self.parseMessage)
+        if indexMes != indexCall-3:
+            startA = callLog[indexCall].xpath("./span/a").extract()
+            endA = callLog[indexMes].xpath("./span/a").extract()
+            if startA[0][9] != '#':
+                endNum = startA[0].find('.')
+                start = int(startA[0][17:endNum])
+            else:
+                start = 0
+            if endA[0][9] != '#':
+                endNum = endA[0].find('.')
+                end = int(endA[0][17:endNum])
+            else:
+                end = 0
+            for i in range(start, end+1):
+                theEndNum = response.url.find("Contents") + 8
+                yield scrapy.Request(response.url[0:theEndNum] + str(i) + ".html", callback = self.parseMessage)
 
 
 
@@ -107,8 +135,18 @@ class MySpider(scrapy.Spider):
         else:
             return 0
 
-    def parseCallLog(self, response):
+    def getRoute(self):
+        pages = []
+        f = open("output.txt", "r")
+        line = f.readline().replace('\n', '')
+        return line
 
+
+    def parseCallLog(self, response):
+        route = self.getRoute()
+        string = response.url[20:len(response.url)]
+        end = string.find('Contents')
+        outputFileName = response.url[20:20+end-1]
         index = 4
         tablelist = response.selector.xpath("//table[@class='OuterTable'][@border='1px']")
         for li in tablelist:
@@ -118,7 +156,7 @@ class MySpider(scrapy.Spider):
             tdlist = li.xpath(".//td/text()").extract()
             flagMD5 = self.isMD5(tdlist)
             while index < len(tdlist):
-                f = file("callLog.csv", "a+")
+                f = file(route + outputFileName + '-' + "callLog.csv", "a+")
                 f.write(tdlist[index] + ',' + tdlist[index+1] + ',' + tdlist[index+2] + ',')
                 f.write(tdlist[index+4] + ',' + tdlist[index+6] + ',' + tdlist[index+8] + ',')
                 f.write(tdlist[index+10] + ',' + tdlist[index+12])
@@ -131,32 +169,70 @@ class MySpider(scrapy.Spider):
             index = 4
 
     def parseMessage(self, response):
+        route = self.getRoute()
+        string = response.url[20:len(response.url)]
+        end = string.find('Contents')
+        outputFileName = response.url[20:20+end-1]
 
-        index = 6
         tablelist = response.selector.xpath("//table[@class='OuterTable'][@border='1px']")
         for li in tablelist:
-            lixpath = li.xpath(".//tr[@class='tablehead']/td[2]/text()").extract()[0]
+            lixTmp = li.xpath(".//tr[@class='tablehead']")
+            lixpath = lixTmp.xpath("./td[2]/text()").extract()[0]
             if lixpath != u'\u7535\u8bdd\u4fe1\u606f':#中文:电话信息
                 continue
-            tdlist = li.xpath(".//td/text()").extract()
+
+            trlist = li.xpath("./tr")
             col2 = li.xpath("./tr/td/table").extract()[0]
             rangeCol2 = len(Selector(text=col2).xpath(".//td").extract())-1
-            while index < len(tdlist):
-                f = file("message.csv", "a+")
-                f.write(tdlist[index] + ',')
-                for i in range(1,rangeCol2):
-                    tmp = tdlist[index+i].replace('\n', ' ')
+
+            for trTmp in trlist[1:len(trlist)] :
+                tdListText = trTmp.xpath(".//td/text()").extract()
+                f = file(route + outputFileName + '-' + "Message.csv", "a+")
+
+                for i in range(0,rangeCol2):
+                    tmp = tdListText[i].replace('\n', ' ')
                     f.write(tmp + ' ')
-                for i in range(rangeCol2, 5+rangeCol2):
-                    tmp = tdlist[index+i].replace('\n', ' ')
+
+                if len(tdListText) == (5 + rangeCol2):
+                    for i in range(rangeCol2, 5+rangeCol2):
+                        tmp = tdListText[i].replace('\n', ' ')
+                        f.write(tmp + ',')
+                    f.write('\n')
+                    f.close()
+
+                elif len(tdListText) == (8+ rangeCol2):
+                    indexListFate = [0,1,3,6,7,5]
+                    indexListTrue = [i + rangeCol2 for i in indexListFate]
+                    for i in indexListTrue:
+                        tmp = tdListText[i].replace('\n', ' ')
+                        f.write(tmp + ',')
+                    f.write('\n')
+                    f.close()
+
+                elif len(tdListText) == (7 + rangeCol2):
+                    indexListFate = [0,1]
+                    indexListTrue = [i + rangeCol2 for i in indexListFate]
+                    for i in indexListTrue:
+                        tmp = tdListText[i].replace('\n', ' ')
+                        f.write(tmp + ',')
+                    tdList = trTmp.xpath(".//td")
+                    tmp = (tdList[6+rangeCol2].xpath("./div/text()").extract()[0]).replace('\n',' ')
                     f.write(tmp + ',')
-                f.write('\n')
-                f.close()
-                index = index + rangeCol2 + 5
-            index = 6
+                    indexListFate = [5,6,4]
+                    indexListTrue = [i + rangeCol2 for i in indexListFate]
+                    for i in indexListTrue:
+                        tmp = tdListText[i].replace('\n', ' ')
+                        f.write(tmp + ',')
+                    f.write('\n')
+                    f.close()
 
 
     def parseAdressBook(self, response):
+        route = self.getRoute()
+        string = response.url[20:len(response.url)]
+        end = string.find('Contents')
+        outputFileName = response.url[20:20+end-1]
+
 
         index = 6
         tablelist = response.selector.xpath("//table[@class='OuterTable'][@border='1px']")
@@ -167,7 +243,7 @@ class MySpider(scrapy.Spider):
             tdlist = li.xpath(".//td/text()").extract()
 
             while index < len(tdlist):
-                f = file("adressBook.csv", "a+")
+                f = file(route + outputFileName + '-' + "adressBook.csv", "a+")
                 f.write(tdlist[index] + ',' + tdlist[index+1] + ',' + tdlist[index+2] + ',')
                 f.write(tdlist[index+3] + ',' + tdlist[index+4] + ',' + tdlist[index+5] + '\n')
 
@@ -176,14 +252,19 @@ class MySpider(scrapy.Spider):
             index = 6
 
 
-process = CrawlerProcess({
-    'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
-})
+
+
+
+
+
 
 
 reload(sys)
 sys.setdefaultencoding( "utf-8" )
 
-print "abcde\n\n\n\n\n\n\n\n\n\n\n\n\n"
-process.crawl(MySpider)
+process = CrawlerProcess(get_project_settings())
+
+
+
+process.crawl('quotes', DUPEFILTER_DEBUG= True)
 process.start() # the script will block here until the crawling is finished
