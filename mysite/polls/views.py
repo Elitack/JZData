@@ -2,8 +2,10 @@ from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views import generic
-
+from django.http import HttpResponse
 from .models import Choice, Question
+from django.utils.encoding import smart_str
+from wsgiref.util import FileWrapper
 
 def index(request):
     latest_question_list = Question.objects.order_by('-pub_date')[:5]
@@ -35,3 +37,10 @@ def vote(request, question_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+
+def download(request):
+    file_name = "bcp.zip"
+    path_to_file = "/home/jack/Documents/Project/JZData/mysite/bcp.zip"
+    response = HttpResponse(FileWrapper(file(path_to_file,'rb')), content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename='+file_name
+    return response
