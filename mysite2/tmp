@@ -1,28 +1,3 @@
-
-from django.shortcuts import get_object_or_404, render
-from django.http import HttpResponse, HttpResponseRedirect
-from django import forms
-from django.urls import reverse
-from disk.models import User
-from django.utils.encoding import smart_str
-import shutil
-import os,sys
-import zipfile
-# Create your views here.
-
-from scrapy.crawler import CrawlerProcess
-import os
-
-from tool.recur import MySpider
-from tool.ziptool import zip_dir, unzip_file
-
-
-from wsgiref.util import FileWrapper
-class UserForm(forms.Form):
-    username = forms.CharField()
-    headImg = forms.FileField()
-
-
 def register(request):
     if request.method == "POST":
         uf = UserForm(request.POST,request.FILES)
@@ -55,27 +30,3 @@ def register(request):
     else:
         uf = UserForm()
     return render(request, 'disk/register.html',{'uf':uf})
-
-
-def show(request):
-    route = "/home/jack/Documents/Project/JZData/mysite2/disk/static/data/"
-    fileName = "bcp.zip"
-    fileListTmp = os.listdir(route + fileName[0:-4])
-    fileList = []
-    for fi in fileListTmp:
-        fileList.append(fi[0:-4])
-    return render(request, 'disk/show.html', {'fileName':fileName[0:-4], 'fileList':fileList})
-
-def clearFile(fileName):
-    shutil.rmtree("/home/jack/Documents/Project/JZData/mysite2/upload/test/" + fileName[0:-4])
-    os.remove("/home/jack/Documents/Project/JZData/mysite2/upload/" + fileName)
-
-
-
-#def download(request):
-#    file_name = #get the filename of desired excel file
-#    path_to_file = #get the path of desired excel file
-#    response = HttpResponse(mimetype='application/force-download')
-#    response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(file_name)
-#    response['X-Sendfile'] = smart_str(path_to_file)
-#    return response

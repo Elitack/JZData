@@ -5,4 +5,5 @@ from . import views
 app_name = 'disk'
 urlpatterns = [
     url(r'^$', views.register, name='register'),
+    url(r'^show/$', views.show, name='show'),
 ]

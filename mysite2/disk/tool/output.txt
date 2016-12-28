@@ -1,1 +1,1 @@
-/home/jack/Desktop/store/
+/home/jack/Documents/Project/JZData/mysite2/disk/static/data/
