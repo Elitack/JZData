@@ -53,6 +53,7 @@ def show(request):
 
             for fi in fileListTmp:
                 fileList.append(fi[0:-4])
+            clearFile(fileName)
             return render(request, 'disk/show.html', {'fileName':fileName[0:-4], 'fileList':fileList})
 
 
@@ -70,7 +71,6 @@ def download(request, fileName):
 
 
 def clearFile(fileName):
-    shutil.rmtree("upload/test/" + fileName[0:-4])
     os.remove("upload/" + fileName)
 
 
