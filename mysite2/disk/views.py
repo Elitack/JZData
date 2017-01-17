@@ -10,8 +10,6 @@ import os,sys
 import zipfile
 # Create your views here.
 import time
-from scrapy.crawler import CrawlerRunner
-from twisted.internet import reactor
 
 import os
 
@@ -42,10 +40,10 @@ def show(request):
             user.save()
 
             fileName = request.FILES.get('headImg').name
-            unzip_file("/home/jack/Documents/Project/JZData/mysite2/upload/" + fileName, "/home/jack/Documents/Project/JZData/mysite2/upload/test/" + fileName[0:-4])
+            unzip_file("upload/" + fileName, "upload/test/" + fileName[0:-4])
 
 #crawl and store
-            route = "/home/jack/Documents/Project/JZData/mysite2/disk/static/data/"
+            route = "disk/static/data/"
             os.mkdir(route+fileName[0:-4])
             crawlXML(fileName[0:-4])
 
@@ -64,7 +62,7 @@ def show(request):
 
 def download(request, fileName):
     file_name = fileName+'.zip'
-    path_to_file = "/home/jack/Documents/Project/JZData/mysite2/disk/static/data/" + file_name
+    path_to_file = "disk/static/data/" + file_name
     response = HttpResponse(FileWrapper(file(path_to_file,'rb')), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename='+file_name
     clearFile(file_name)
@@ -72,8 +70,8 @@ def download(request, fileName):
 
 
 def clearFile(fileName):
-    shutil.rmtree("/home/jack/Documents/Project/JZData/mysite2/upload/test/" + fileName[0:-4])
-    os.remove("/home/jack/Documents/Project/JZData/mysite2/upload/" + fileName)
+    shutil.rmtree("upload/test/" + fileName[0:-4])
+    os.remove("upload/" + fileName)
 
 
 

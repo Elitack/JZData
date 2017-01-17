@@ -5,7 +5,7 @@ import sys
 def crawlXML(docuName):
     reload(sys)
     sys.setdefaultencoding( "utf-8" )
-    soup = BeautifulSoup(open('/home/jack/Documents/Project/JZData/mysite2/upload/test/'+ docuName + '/GAB_ZIP_INDEX.xml'), 'xml')
+    soup = BeautifulSoup(open('upload/test/'+ docuName + '/GAB_ZIP_INDEX.xml'), 'xml')
     mainContent = soup.MESSAGE.DATASET.DATA.DATASET
     colVal=""
     rowVal=""
@@ -30,10 +30,10 @@ def crawlXML(docuName):
 def stripFile(oldFName,row,col,listed,docuName):
     row = transfer(row)
     col=transfer(col)
-    f = open("/home/jack/Documents/Project/JZData/mysite2/disk/tool/output.txt", "r")
+    f = open("disk/tool/output.txt", "r")
     route = f.readline().replace('\n', '')
     f.close()
-    g = open("/home/jack/Documents/Project/JZData/mysite2/disk/tool/input.txt", "r")
+    g = open("disk/tool/input.txt", "r")
     rout = g.readline().replace('\n', '')
     g.close()
     outputFileName = docuName
