@@ -1,7 +1,7 @@
  #coding=utf-8
-
+from twisted.internet import reactor
 import scrapy
-from scrapy.crawler import CrawlerProcess
+from scrapy.crawler import CrawlerRunner
 import sys
 import scrapy
 from scrapy.selector import Selector
@@ -22,15 +22,15 @@ class MySpider(scrapy.Spider):
         line = f.readline().replace('\n', '')
         for filename in os.listdir(line):
             url = "file://" + line + filename + "/GAB_ZIP_INDEX.xml"
-            page = scrapy.Request(url)
-            pages.append(page)
+            pages.append(url)
 
             g = open("/home/jack/Documents/Project/JZData/mysite2/disk/tool/output.txt", "r")
             rout = g.readline().replace('\n', '')
             os.mkdir(rout+filename)
             g.close()
         f.close()
-        return pages
+        for url in pages:
+            yield scrapy.Request(url = url, callback = self.parse)
 
 
     #chn中文信息#
@@ -61,6 +61,7 @@ class MySpider(scrapy.Spider):
     def parse(self, response):
         reload(sys)
         sys.setdefaultencoding("utf-8")
+        self.start_requests()
         main = response.xpath("//DATASET/DATA/DATASET")[0]
         dataset = main.xpath('./DATA')
         for data in dataset:
@@ -85,7 +86,27 @@ class MySpider(scrapy.Spider):
         indexE = itemTmp[indexF:-1].find('"')+indexF
         return itemTmp[indexF:indexE]
 
-    def nameFind(self,itemTmp):
+    def nameFind(self,itemTmp):        f = open("/home/jack/Documents/Project/JZData/mysite2/disk/tool/output.txt", "r")
+        route = f.readline().replace('\n', '')
+        f.close()
+        g = open("/home/jack/Documents/Project/JZData/mysite2/disk/tool/input.txt", "r")
+        rout = g.readline().replace('\n', '')
+        g.close()
+        outputFileName = response.url.split('/')[-2]
+        na = rout + outputFileName + '/' + oldFName
+        fp = open(na,"r+")
+        newFp = file(route+'/' + outputFileName + '/' +oldFName[0:-4]+r'.csv',"a+")
+        newFp.write(codecs.BOM_UTF8)
+        for i in range(0, len(listed)-1):
+            newFp.write(listed[i]+',')
+        newFp.write(listed[-1]+'\n')
+
+        for eachline in fp.readlines():
+            newStr = eachline.replace(col,",").replace(row,"\n").strip()
+            newFp.write(newStr+'\n')
+
+        newFp.close()
+        fp.close()
         indexF = itemTmp.find('chn') + 5
         indexE = itemTmp[indexF:-1].find('"')+indexF
         chin = itemTmp[indexF:indexE]
@@ -111,9 +132,6 @@ class MySpider(scrapy.Spider):
         newFp.write(codecs.BOM_UTF8)
         for i in range(0, len(listed)-1):
             newFp.write(listed[i]+',')
-        newFp.write(listed[-1]+'\n')
-
-        for eachline in fp.readlines():
             newStr = eachline.replace(col,",").replace(row,"\n").strip()
             newFp.write(newStr+'\n')
 
@@ -142,3 +160,7 @@ class MySpider(scrapy.Spider):
                 continue
             b += i
         return b
+
+runner = CrawlerRunner()
+d = runner.crawl(MySpider)
+d.addBoth(lambda _: reactor.stop())

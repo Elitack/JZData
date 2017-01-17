@@ -1,4 +1,4 @@
-
+from threading import Thread
 from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect
 from django import forms
@@ -9,11 +9,13 @@ import shutil
 import os,sys
 import zipfile
 # Create your views here.
+import time
+from scrapy.crawler import CrawlerRunner
+from twisted.internet import reactor
 
-from scrapy.crawler import CrawlerProcess
 import os
 
-from tool.recur import MySpider
+from tool.tool import crawlXML
 from tool.ziptool import zip_dir, unzip_file
 
 
@@ -24,6 +26,11 @@ class UserForm(forms.Form):
 
 
 def register(request):
+    uf = UserForm()
+    return render(request, 'disk/register.html',{'uf':uf})
+
+
+def show(request):
     if request.method == "POST":
         uf = UserForm(request.POST,request.FILES)
         if uf.is_valid():
@@ -33,38 +40,36 @@ def register(request):
             user.username = username
             user.headImg = headImg
             user.save()
+
             fileName = request.FILES.get('headImg').name
             unzip_file("/home/jack/Documents/Project/JZData/mysite2/upload/" + fileName, "/home/jack/Documents/Project/JZData/mysite2/upload/test/" + fileName[0:-4])
-            process = CrawlerProcess({
-                'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
-            })
 
-            process.crawl(MySpider)
-            process.start() # the script will block here until the crawling is finished
+#crawl and store
             route = "/home/jack/Documents/Project/JZData/mysite2/disk/static/data/"
-            zip_dir(route + fileName[0:-4], route + fileName)
-            fileList = os.listdir(route + fileName[0:-4])
-            render(request, 'disk/show.html', {'fileName':fileName, 'fileList':fileList})
+            os.mkdir(route+fileName[0:-4])
+            crawlXML(fileName[0:-4])
 
-            file_name = fileName
-            path_to_file = "/home/jack/Desktop/store/" + file_name
-            response = HttpResponse(FileWrapper(file(path_to_file,'rb')), content_type='application/zip')
-            response['Content-Disposition'] = 'attachment; filename='+file_name
-            clearFile(fileName)
-            return response
+            zip_dir(route + fileName[0:-4], route + fileName)
+            fileListTmp = os.listdir(route + fileName[0:-4])
+            fileList = []
+
+            for fi in fileListTmp:
+                fileList.append(fi[0:-4])
+            return render(request, 'disk/show.html', {'fileName':fileName[0:-4], 'fileList':fileList})
+
+
     else:
         uf = UserForm()
     return render(request, 'disk/register.html',{'uf':uf})
 
+def download(request, fileName):
+    file_name = fileName+'.zip'
+    path_to_file = "/home/jack/Documents/Project/JZData/mysite2/disk/static/data/" + file_name
+    response = HttpResponse(FileWrapper(file(path_to_file,'rb')), content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename='+file_name
+    clearFile(file_name)
+    return response
 
-def show(request):
-    route = "/home/jack/Documents/Project/JZData/mysite2/disk/static/data/"
-    fileName = "bcp.zip"
-    fileListTmp = os.listdir(route + fileName[0:-4])
-    fileList = []
-    for fi in fileListTmp:
-        fileList.append(fi[0:-4])
-    return render(request, 'disk/show.html', {'fileName':fileName[0:-4], 'fileList':fileList})
 
 def clearFile(fileName):
     shutil.rmtree("/home/jack/Documents/Project/JZData/mysite2/upload/test/" + fileName[0:-4])
